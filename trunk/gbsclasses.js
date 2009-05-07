@@ -6,7 +6,7 @@
  *   License: This software is released under the LGPL license,
  *   See http://www.gnu.org/licenses/lgpl.txt
  *
- *   $Id: gbsclasses.js,v 1.6 2008/04/27 03:17:14 gback Exp gback $
+ *   $Id$
  *
  *   Instructions:
  *   ------------
