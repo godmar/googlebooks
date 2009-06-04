@@ -1,0 +1,166 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html>
+<head>
+<script src="http://www.google.com/jsapi" type="text/javascript"></script>
+<script src="gbsclasses.js" type="text/javascript"> </script>
+
+<title>Simple Demo for Google Book Classes</title>
+</head>
+
+<body>
+<p>
+<h2>Demo for Google Book Classes</h2>
+Google Book Classes wraps the 
+ <a href="http://code.google.com/apis/books/getting-started.html">Google Book Viewability API</a>
+in a set of easy-to-use HTML widgets to merge information from Google Books into a webpage.
+Use "View Source" to examine the simple HTML tags that have created the content you see below.
+</p>
+<p>
+The Google Book Classes (gbs) are available under the LGPL license.  If you deploy it,
+please host <a href="gbsclasses.js">gbsclasses.js</a> on your own machine.
+</p>
+<p>
+<p>
+See <a href="http://libx.lib.vt.edu/services/majax2/talk/IUG%202009%20-%20Web%20Services%20&%20HTML%20Widgets%20for%20the%20WebOPAC.ppt">Annette's IUG 2009 talk</a>
+for details on how to use MAJAX 2, tictoclookup, and Google Book classes, particularly in the III Millennium OPAC.
+</p>
+<p>
+Examples:
+</p>
+<table cellpadding="4" cellspacing="4" border="1">
+<tr><td valign="top">
+<pre>
+&lt;span title="ISBN:0061234001" class="gbs-thumbnail"&gt;&lt;/span&gt;
+</pre>
+</td><td>
+  <span title="ISBN:0061234001" class="gbs-thumbnail"></span>
+</td></tr>
+
+<tr><td valign="top">
+<pre>
+&lt;span title="ISBN:0596000278" class="gbs-thumbnail gbs-link-to-preview"&gt;&lt;/span&gt;
+</pre>
+</td><td>
+  <span title="ISBN:0596000278" class="gbs-thumbnail gbs-link-to-preview"></span>
+</td></tr>
+
+<tr><td valign="top">
+<pre>
+&lt;span style="display:none" title="ISBN:0596000278" 
+   class="gbs-link-to-info gbs-if-partial gbs-remove-on-failure"&gt;
+  &lt;img src="http://code.google.com/apis/books/images/api-example2.png"&gt;
+&lt;/span&gt;
+</pre>
+</td><td>
+<span style="display:none" title="ISBN:0596000278" class="gbs-link-to-info gbs-if-partial gbs-remove-on-failure"><img src="http://code.google.com/apis/books/images/api-example2.png"></span>
+</td></tr>
+
+<tr><td valign="top">
+Alternate syntax. Use '*' in title and place identifier in span.
+<pre>
+&lt;span title="*" class="gbs-thumbnail gbs-link-to-info"&gt;
+OCLC:60348769
+&lt;/span&gt;
+&lt;span title="*" class="gbs-thumbnail-large gbs-remove-on-failure"&gt;
+1412908892 (cloth)&lt;/span&gt;
+</pre>
+</td><td>
+  <span title="*" class="gbs-thumbnail gbs-link-to-info">OCLC:60348769</span>
+<span title="*" class="gbs-thumbnail-large gbs-remove-on-failure">
+1412908892 (cloth)</span>
+</td></tr>
+
+<tr><td valign="top">
+Alternate syntax 2. Use 'OCLC:*' in title and place OCLC number in span.
+<pre>
+&lt;span title="OCLC:*" class="gbs-thumbnail gbs-link-to-info"&gt;
+60348769
+&lt;/span&gt;
+</pre>
+</td><td>
+  <span title="OCLC:*" class="gbs-thumbnail gbs-link-to-info">60348769</span>
+</td></tr>
+
+<tr><td valign="top">
+Alternate syntax 2a. Use 'OCLC:*' in title and place OCLC number in span.
+OCLC number may contain a "ocm" prefix.
+<pre>
+&lt;span title="OCLC:*" class="gbs-thumbnail-large gbs-link-to-info"&gt;
+ocm60348769
+&lt;/span&gt;
+
+</pre>
+</td><td>
+  <span title="OCLC:*" class="gbs-thumbnail-large gbs-link-to-info">ocm60348769</span>
+</td></tr>
+<!--
+<tr><td valign="top">
+<pre>
+</pre>
+</td><td>
+</td></tr>
+-->
+
+</table>
+
+<p>
+    <a href="tests.html">See this page for more tests.</a>
+</p>
+
+
+<h2>Supported Classes</h2>
+<p>
+<tt>gbs-thumbnail</tt> Include an &lt;img...&gt; embedding the thumbnail image
+</p><p>
+<tt>gbs-thumbnail-large</tt> Like gbs-thumbnail, except larger. This option is experimental and
+        not supported by Google.
+</p><p>
+<tt>gbs-embed-viewer</tt> Embed a viewer here.  In this case, you should use a &lt;div&gt; rather than a &lt;span&gt; element.
+</p><p>
+<tt>gbs-link-to-preview</tt> Wrap span in link to preview at GBS
+</p><p>
+<tt>gbs-link-to-info</tt> Wrap span in link to info page at GBS
+</p><p>
+<tt>gbs-link-to-thumbnail</tt> Wrap span in link to thumbnail at GBS
+</p><p>
+<b>Note:</b> <tt>gbs-link-to-preview</tt>, <tt>gbs-link-to-info</tt>, and <tt>gbs-link-to-thumbnail</tt> accept a postfix to determine the 'target' attribute. For instance, <tt>gbs-link-to-info-blank</tt> creates a target="_blank" attribute to force the link to open in a new window.
+</p><p>
+<tt>gbs-if-noview</tt> Keep this span only if GBS reports that book's viewability is 'noview'
+</p><p>
+<tt>gbs-if-partial-or-full</tt> Keep this span only if GBS reports that book's viewability is at least 'partial'
+</p><p>
+<tt>gbs-if-partial</tt> Keep this span only if GBS reports that book's viewability is 'partial'
+</p><p>
+<tt>gbs-if-full</tt> Keep this span only if GBS reports that book's viewability is 'full'
+</p><p>
+<tt>gbs-remove-on-failure</tt> Remove this span if GBS doesn't return bookInfo for this item
+</p>
+
+<p>
+Note: Google appears to have a relatively large numbers of ISBNs misindexed. 
+I am suspecting that in general, OCLC# or LCCN# may be better identifiers to use.
+<p>Example 1:
+<span title="ISBN:1402038682" class="gbs-link-to-info"> ISBN:1402038682 (misindexed) </span>&nbsp;
+<span title="OCLC:63180607" class="gbs-link-to-info"> OCLC:63180607 (correct) </span> &nbsp;
+<span title="LCCN:2006436815" class="gbs-link-to-info"> LCCN:2006436815 (correct) </span> &nbsp;
+</p>
+<p>Example 2:
+<span title="ISBN:1402030533" class="gbs-link-to-info"> ISBN:1402030533 (misindexed) </span> &nbsp;
+<span title="OCLC:60679740" class="gbs-link-to-info"> OCLC:60679740(correct) </span> &nbsp;
+<span title="LCCN:2005275561" class="gbs-link-to-info"> LCCN:2005275561 (correct) </span> &nbsp;
+</p>
+<p>Different variations on links
+<span title="LCCN:2005275561" class="gbs-link-to-info-blank"> LCCN:2005275561 (target=blank) </span> &nbsp;
+<span title="LCCN:2005275561" class="gbs-link-to-info-top"> LCCN:2005275561 (target=top) </span> &nbsp;
+<span title="LCCN:2005275561" class="gbs-link-to-info-self"> LCCN:2005275561 (target=self) </span> &nbsp;
+<span title="LCCN:2005275561" class="gbs-link-to-info-parent"> LCCN:2005275561 (target=parent) </span> &nbsp;
+</p>
+
+  <div 
+        style="{ width:800px; height:500px }" 
+        title="ISBN:0596000278" 
+        class="gbs-embed-viewer gbs-if-partial-or-full">
+  </div>
+</body>
+</html>
