@@ -202,7 +202,7 @@ gbs.ProcessResults = function (bookInfo) {
         var result = bookInfo[i];
         // alert("result found for: " + result.bib_key + " " + result.preview);
         req = gbsKey2Req[result.bib_key];
-        if (req == null) {
+        if (req == null || req == undefined) {
             continue;
         }
 
@@ -289,7 +289,7 @@ function gbsProcessSpan(spanElem) {
          * a III record display to find the ISBN.
          */
         getSearchItem: function () {
-            if (this.searchitem !== undefined)
+            if (this.searchitem != null)
                 return this.searchitem;
 
             var req = this.span.getAttribute('title');
@@ -330,7 +330,7 @@ function gbsProcessSpan(spanElem) {
     };
 
     // wrap the span element in a link to bookinfo[bookInfoProp]
-    function linkTo(mReq, bookInfoProp) {
+    function linkTo(mReq, bookInfoProp, target) {
         mReq.success.push(function (mReq, bookinfo) {
             if (bookinfo[bookInfoProp] === undefined)
                 return;
@@ -340,6 +340,8 @@ function gbsProcessSpan(spanElem) {
             p.removeChild(mReq.span);
             var a = document.createElement("a");
             a.setAttribute("href", bookinfo[bookInfoProp]);
+            if (target != undefined)
+                a.setAttribute("target", "_" + target);
             a.appendChild(mReq.span);
             p.insertBefore(a, s);
         });
@@ -361,6 +363,13 @@ function gbsProcessSpan(spanElem) {
             Viewability state - either "noview", "partial", or "full"
      */
     function addHandler(gbsClass, mReq) {
+
+        var m = gbsClass.match(/gbs-link-to-(preview|info|thumbnail)(-(\S+))?/);
+        if (m) {
+            linkTo(mReq, m[1] + '_url', m[3]);
+            return true;
+        }
+
         switch (gbsClass) {
         case "gbs-thumbnail":
         case "gbs-thumbnail-large":
@@ -378,16 +387,14 @@ function gbsProcessSpan(spanElem) {
             });
             break;
 
-        case "gbs-link-to-preview":
-            linkTo(mReq, 'preview_url');
-            break;
+        case "gbs-embed-viewer":
+            mReq.success.push(function (mReq, bookinfo) {
+                if (!bookinfo.embeddable)
+                    return;
 
-        case "gbs-link-to-info":
-            linkTo(mReq, 'info_url');
-            break;
-
-        case "gbs-link-to-thumbnail":
-            linkTo(mReq, 'thumbnail_url');
+                var viewer = new google.books.DefaultViewer(mReq.span);
+                viewer.load(mReq.getSearchItem());
+            });
             break;
 
         case "gbs-if-noview":
@@ -407,14 +414,14 @@ function gbsProcessSpan(spanElem) {
                 } else {
                     // else, if span was previously hidden, set visibility to "inline"
                     var node = mReq.span;
-                    if (node.style.display == "none") {
+                    if (node.style != null && node.style.display == "none") {
                         node.style.display = "inline";
                     }
 
                     // and, if a hidden parent exists, unhide that parent as well.
                     // XXX should we do this conditionally based on a gbs-unhide-parent class?
                     for (; node != null; node = node.parentNode) {
-                        if (node.style.display == "none") {
+                        if (node.style != null && node.style.display == "none") {
                             node.style.display = "block";
                             break;
                         }
@@ -462,7 +469,11 @@ function gbsReady() {
     var span = document.getElementsByTagName("span");
     var spanElems = new Array();
     for (var i = 0; i < span.length; i++) {
-        spanElems[i] = span[span.length - 1 - i];
+        spanElems.push(span[span.length - 1 - i]);
+    }
+    var divs = document.getElementsByTagName("div");
+    for (var i = 0; i < divs.length; i++) {
+        spanElems.push(divs[divs.length - 1 - i]);
     }
     gbsProcessSpans(spanElems);
 }
@@ -470,5 +481,9 @@ function gbsReady() {
 gbs.readyListeners.push(gbsReady);
 
 bindReady();
+
+if (typeof google != "undefined") {
+    google.load("books", "0");
+}
 
 })();
