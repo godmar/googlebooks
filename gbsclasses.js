@@ -169,14 +169,14 @@ function trim(s) {
 };
 
 // find ISBN in III record display
-function scrapeISBNInIIIRecordDisplay()
+function scrapeIdentifierInIIIRecordDisplay(id)
 {
     var tds = document.getElementsByTagName("td");
     for (var i = 0; i < tds.length; i++) {
         if (tds[i].className != "bibInfoLabel")
             continue;
         var text = trim(tds[i].innerText || tds[i].textContent || "");
-        if (!text.match(/ISBN/))
+        if (!new RegExp(id).test(text))
             continue;
 
         var bdata = tds[i].nextSibling;
@@ -187,9 +187,14 @@ function scrapeISBNInIIIRecordDisplay()
             break;
 
         var text = trim(bdata.innerText || bdata.textContent || "");
-        var m = text.match(/^((\d|x){10,13}).*/i);
-        if (m) {
-            return "ISBN:" + m[1];
+        if (id == "ISBN") {
+            var m = text.match(/^((\d|x){10,13}).*/i);
+            if (m) {
+                return "ISBN:" + m[1];
+            }
+        } else
+        if (id == "OCLC") {
+            return "OCLC:0000000";
         }
     }
     return null;
@@ -269,6 +274,8 @@ function gbsProcessSpan(spanElem) {
                     this.success[i](this, result);
                 } catch (er) { }
             this.removeTitle();
+            if (!this.useConditionalVisible) 
+                makeSureSpanIsVisible(this);
         },
         onfailure: function (status) {
             for (var i = 0; i < this.failure.length; i++)
@@ -307,7 +314,7 @@ function gbsProcessSpan(spanElem) {
                     break;
 
                 case  "OCLC:*":
-                    text = text.replace(/^ocm/, "");
+                    text = text.replace(/^[\s\S]*?(oc[mn])?(\d+)[\s\S]*/, "$2");
                     this.searchitem = "OCLC:" + text;
                     break;
 
@@ -319,8 +326,8 @@ function gbsProcessSpan(spanElem) {
                 // remove first child only
                 if (this.span.hasChildNodes())
                     this.span.removeChild(this.span.firstChild);
-            } else if (req == "ISBN:millennium.record") {
-                this.searchitem = scrapeISBNInIIIRecordDisplay();
+            } else if ((m = req.match(/(.*):millennium.record/)) != null) {
+                this.searchitem = scrapeIdentifierInIIIRecordDisplay(m[1]);
             } else {
                 this.searchitem = req.toLowerCase();
             }
@@ -345,6 +352,21 @@ function gbsProcessSpan(spanElem) {
             a.appendChild(mReq.span);
             p.insertBefore(a, s);
         });
+    }
+
+    function makeSureSpanIsVisible(mReq) {
+        var node = mReq.span;
+        if (node.style != null && node.style.display == "none") {
+            node.style.display = "inline";
+        }
+
+        // and, if one or more hidden parents exist, unhide them parent as well.
+        // XXX should we do this conditionally based on a gbs-unhide-parent class?
+        for (; node != null; node = node.parentNode) {
+            if (node.style != null && node.style.display == "none") {
+                node.style.display = "block";
+            }
+        }
     }
 
     /**
@@ -402,6 +424,7 @@ function gbsProcessSpan(spanElem) {
         case "gbs-if-partial":
         case "gbs-if-full":
             mReq.gbsif = gbsClass.replace(/gbs-if-/, "");
+            mReq.useConditionalVisible = true;
             mReq.success.push(function (mReq, bookinfo) {
                 if (mReq.gbsif == "partial-or-full") {
                     var keep = bookinfo.preview == "partial" || bookinfo.preview == "full";
@@ -412,20 +435,7 @@ function gbsProcessSpan(spanElem) {
                 if (!keep) {
                     mReq.span.parentNode.removeChild(mReq.span);
                 } else {
-                    // else, if span was previously hidden, set visibility to "inline"
-                    var node = mReq.span;
-                    if (node.style != null && node.style.display == "none") {
-                        node.style.display = "inline";
-                    }
-
-                    // and, if a hidden parent exists, unhide that parent as well.
-                    // XXX should we do this conditionally based on a gbs-unhide-parent class?
-                    for (; node != null; node = node.parentNode) {
-                        if (node.style != null && node.style.display == "none") {
-                            node.style.display = "block";
-                            break;
-                        }
-                    }
+                    makeSureSpanIsVisible(mReq);
                 }
             });
             break;
@@ -435,6 +445,14 @@ function gbsProcessSpan(spanElem) {
                 mReq.span.parentNode.removeChild(mReq.span);
             });
             break;
+
+        /* Use this to make backup elements disappear if GBS is successful */
+        case "gbs-remove-on-success":
+            mReq.success.push(function (mReq, status) {
+               mReq.span.parentNode.removeChild(mReq.span);
+            });
+            break;
+
         // XXX add more here
 
         default:
@@ -445,6 +463,7 @@ function gbsProcessSpan(spanElem) {
 
     var isGBS = false;
     var classEntries = cName.split(/\s+/);
+    mReq.useConditionalVisible = false;
     for (var i = 0; i < classEntries.length; i++) {
         if (addHandler(classEntries[i], mReq))
             isGBS = true;
@@ -483,7 +502,9 @@ gbs.readyListeners.push(gbsReady);
 bindReady();
 
 if (typeof google != "undefined") {
-    google.load("books", "0");
+    if (typeof google.load == "function") {
+        google.load("books", "0");
+    }
 }
 
 })();
