@@ -1,0 +1,1 @@
+Widget library for accessing the Google Books service.
